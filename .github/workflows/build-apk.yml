@@ -49,6 +49,26 @@ jobs:
       - name: Caché de Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Keystore de debug (los runners no lo traen)
+        shell: bash
+        run: |
+          set -euo pipefail
+          KS="${HOME}/.android/debug.keystore"
+          if [ ! -f "$KS" ]; then
+            mkdir -p "${HOME}/.android"
+            # El build.gradle.kts apunta storeFile a esta ruta exacta y con
+            # storePassword/keyPassword "android" y alias "androiddebugkey",
+            # así que AGP no la autocrea y validateSigning fallaría.
+            keytool -genkeypair \
+              -keystore "$KS" -storetype PKCS12 \
+              -storepass android -keypass android \
+              -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          echo "Keystore listo:"
+          keytool -list -keystore "$KS" -storepass android 2>/dev/null | head -5
+
       - name: Plataforma Android (compileSdk 37)
         shell: bash
         run: |
