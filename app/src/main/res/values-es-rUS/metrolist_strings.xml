@@ -517,7 +517,7 @@
     <string name="density_restart_message">El cambio de densidad de la pantalla se aplicará después de reiniciar la aplicación. ¿Reiniciar ahora?</string>
     <string name="found_in_settings_content">Encontrado en ajustes &gt; Contenido</string>
     <string name="plays">reproducciones</string>
-    <string name="speed_dial">Velocidad de reproducción</string>
+    <string name="speed_dial">Acceso rápido</string>
     <string name="randomize_home_order">Aleatorizar el orden de la pantalla de inicio</string>
     <string name="randomize_home_order_desc">Reordenar aleatoriamente las secciones de la pantalla de inicio usando prioridades ponderadas</string>
     <string name="daily_discover_because_you_listen_to">Porque escuchas a %1$s</string>
@@ -695,8 +695,8 @@
     <string name="recognition_notification_failed">Reconocimiento fallido</string>
     <string name="listen_on_metrolist">Escuchar en Metrolist</string>
     <string name="importing_playlist">Importando listas de reproducción…</string>
-    <string name="pin_to_speed_dial">Anclar para acción rapida</string>
-    <string name="unpin_from_speed_dial">Desanclar de acción rapida</string>
+    <string name="pin_to_speed_dial">Anclar al acceso rápido</string>
+    <string name="unpin_from_speed_dial">Desanclar del acceso rápido</string>
     <string name="logout_dialog_title">¿Mantener los datos de la biblioteca?</string>
     <string name="logout_dialog_message">¿Quieres mantener tus listas de reproducción y datos de la biblioteca? las canciones descargadas siempre estarán</string>
     <string name="logout_keep">Mantener</string>
