@@ -874,37 +874,25 @@
     <string name="update_available_message">Metrolist %s está listo para descargar.</string>
     <string name="update_action">Actualizar</string>
 
-    <string name="search">Buscar</string>
-    <string name="shuffle">Aleatorio</string>
     <string name="repeat">Repetir</string>
     <string name="repeat_one">Repetir una sola vez</string>
     <string name="lock">Bloquear</string>
     <string name="unlock">Desbloquear</string>
     <string name="fullscreen">Pantalla completa</string>
-    <string name="share">Compartir</string>
     <string name="increase">Aumentar</string>
     <string name="decrease">Disminuir</string>
     <string name="expand">Expandir</string>
     <string name="collapse">Contraer</string>
-    <string name="play">Reproducir</string>
     <string name="pause">Pausar</string>
-    <string name="start_radio">Iniciar radio</string>
     <string name="save_to_library">Guardar en biblioteca</string>
-    <string name="remove_from_library">Quitar de la biblioteca</string>
-    <string name="play_next">Reproducir a continuación</string>
-    <string name="add_to_queue">Añadir a la cola</string>
     <string name="search_local">Buscar en la biblioteca local</string>
-    <string name="search_online">Buscar en línea</string>
     <string name="upload">Subir</string>
     <string name="use_suggestion">Usar esta sugerencia</string>
-    <string name="delete">Eliminar</string>
     <string name="show_local">Ver contenido local</string>
     <string name="show_online">Ver contenido en línea</string>
     <string name="drag_handle">Arrastrar para reordenar</string>
     <string name="casting">Transmitiendo</string>
-    <string name="reset">Restablecer</string>
     <string name="reconnect">Reconectar</string>
-    <string name="preview">Vista previa</string>
     <string name="time_transfer">Cambiar periodo</string>
     <string name="no_recognition_history">Sin historial de reconocimiento</string>
 
