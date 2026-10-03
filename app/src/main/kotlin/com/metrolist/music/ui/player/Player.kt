@@ -1269,11 +1269,11 @@ fun BottomSheetPlayer(
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
-                                        .clickable { isFullScreen = !isFullScreen },
+                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) { isFullScreen = !isFullScreen },
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.fullscreen),
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.fullscreen),
                                     tint = iconButtonColor,
                                     modifier =
                                         Modifier
@@ -1288,7 +1288,7 @@ fun BottomSheetPlayer(
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
-                                        .clickable {
+                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) {
                                             val intent =
                                                 Intent().apply {
                                                     action = Intent.ACTION_SEND
@@ -1303,7 +1303,7 @@ fun BottomSheetPlayer(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.share),
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.share),
                                     tint = iconButtonColor,
                                     modifier =
                                         Modifier
@@ -1325,7 +1325,7 @@ fun BottomSheetPlayer(
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
-                                        .clickable {
+                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) {
                                             menuState.show {
                                                 com.metrolist.music.ui.menu.LyricsMenu(
                                                     lyricsProvider = { currentLyrics },
@@ -1345,7 +1345,7 @@ fun BottomSheetPlayer(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.more_horiz),
-                                    contentDescription = null,
+                                    contentDescription = stringResource(R.string.more_options),
                                     tint = iconButtonColor,
                                     modifier =
                                         Modifier
@@ -1758,7 +1758,7 @@ fun BottomSheetPlayer(
                                         .size(72.dp)
                                         .clip(RoundedCornerShape(playPauseRoundness))
                                         .background(textButtonColor)
-                                        .clickable {
+                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) {
                                             if (isListenTogetherGuest) {
                                                 playerConnection.toggleMute()
                                                 return@clickable
@@ -1793,7 +1793,7 @@ fun BottomSheetPlayer(
                                                 R.drawable.play
                                             },
                                         ),
-                                    contentDescription = null,
+                                    contentDescription = stringResource(if (effectiveIsPlaying) R.string.pause else R.string.play),
                                     colorFilter = ColorFilter.tint(iconButtonColor),
                                     modifier =
                                         Modifier
@@ -2155,7 +2155,7 @@ private fun PlayerMoreMenuButton(
                 .size(40.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(textButtonColor)
-                .clickable {
+                .clickable(role = androidx.compose.ui.semantics.Role.Button) {
                     menuState.show {
                         PlayerMenu(
                             mediaMetadata = mediaMetadata,
@@ -2174,7 +2174,7 @@ private fun PlayerMoreMenuButton(
     ) {
         Image(
             painter = painterResource(R.drawable.more_horiz),
-            contentDescription = null,
+            contentDescription = stringResource(R.string.more_options),
             colorFilter = ColorFilter.tint(iconButtonColor),
         )
     }
