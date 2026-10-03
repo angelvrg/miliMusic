@@ -1,0 +1,178 @@
+name: 📦 Build APK
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: "Flavor a compilar"
+        required: true
+        type: choice
+        default: foss
+        options: [ foss, gms, izzy ]
+      build_type:
+        description: "Tipo de build"
+        required: true
+        type: choice
+        default: debug
+        options: [ debug, release ]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: APK ${{ inputs.flavor || 'foss' }} ${{ inputs.build_type || 'debug' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      FLAVOR: ${{ inputs.flavor || 'foss' }}
+      BUILD_TYPE: ${{ inputs.build_type || 'debug' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: JDK 21 (jvmToolchain del proyecto)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Caché de Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Plataforma Android (compileSdk 37)
+        shell: bash
+        run: |
+          set -uo pipefail
+          SM="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [ -x "$SM" ]; then
+            yes | "$SM" --licenses > /dev/null 2>&1 || true
+            "$SM" "platforms;android-37" \
+              || echo "::warning::No se pudo preinstalar platforms;android-37; AGP intentará descargarlo solo"
+          else
+            echo "::warning::sdkmanager no encontrado; AGP descargará la plataforma si hace falta"
+          fi
+
+      - name: Compilar APK
+        shell: bash
+        env:
+          # versionName queda como 13.7.0+<sha> (el build script exige 7-40 hex)
+          METROLIST_BUILD_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          TASK="assemble${FLAVOR^}${BUILD_TYPE^}"
+          echo "Tarea Gradle: :app:${TASK}"
+          chmod +x ./gradlew
+          ./gradlew ":app:${TASK}" --stacktrace
+
+      - name: Localizar APK y huella SHA-256
+        id: apk
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t APKS < <(find app/build/outputs/apk -name '*.apk' -type f | sort)
+          if [ "${#APKS[@]}" -eq 0 ]; then
+            echo "::error::No se generó ningún APK"
+            exit 1
+          fi
+          echo "APKs: ${#APKS[@]}"
+          ls -lh "${APKS[@]}"
+          sha256sum "${APKS[@]}"
+
+      - name: Subir APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: miliMusic-${{ env.FLAVOR }}-${{ env.BUILD_TYPE }}
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Resumen de la ejecución
+        shell: bash
+        run: |
+          {
+            echo "## 📦 APK generado"
+            echo ""
+            echo "| Campo | Valor |"
+            echo "|---|---|"
+            echo "| Flavor | \`${FLAVOR}\` |"
+            echo "| Tipo | \`${BUILD_TYPE}\` |"
+            echo "| ApplicationId | \`com.metrolist.music$( [ "$BUILD_TYPE" = debug ] && echo '.debug' )\` |"
+            echo "| Commit | \`${GITHUB_SHA:0:7}\` |"
+            echo ""
+            echo '```'
+            find app/build/outputs/apk -name '*.apk' -type f -exec ls -lh {} \;
+            find app/build/outputs/apk -name '*.apk' -type f -exec sha256sum {} \;
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Publicar release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: ¿Hay keystore de release?
+        id: ks
+        shell: bash
+        run: |
+          if [ -f app/keystore/release.keystore ] \
+             && [ -n "$STORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            echo "Keystore y secretos presentes: se firmará la release."
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Sin app/keystore/release.keystore o sin STORE_PASSWORD/KEY_ALIAS/KEY_PASSWORD. Se omite la release."
+          fi
+
+      - name: JDK 21
+        if: steps.ks.outputs.ok == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Caché de Gradle
+        if: steps.ks.outputs.ok == 'true'
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compilar release
+        if: steps.ks.outputs.ok == 'true'
+        shell: bash
+        env:
+          METROLIST_BUILD_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          ./gradlew :app:assembleFossRelease --stacktrace
+
+      - name: Crear release con el APK
+        if: steps.ks.outputs.ok == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mapfile -t APKS < <(find app/build/outputs/apk/foss/release -name '*.apk' -type f | sort)
+          [ "${#APKS[@]}" -gt 0 ] || { echo "::error::No hay APK de release"; exit 1; }
+          gh release create "$GITHUB_REF_NAME" "${APKS[@]}" \
+            --title "miliMusic $GITHUB_REF_NAME" \
+            --generate-notes || \
+          gh release upload "$GITHUB_REF_NAME" "${APKS[@]}" --clobber
