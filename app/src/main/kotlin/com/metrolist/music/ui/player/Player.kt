@@ -85,6 +85,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
@@ -1269,7 +1273,7 @@ fun BottomSheetPlayer(
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
-                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) { isFullScreen = !isFullScreen },
+                                        .clickable { isFullScreen = !isFullScreen },
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.fullscreen),
@@ -1288,7 +1292,7 @@ fun BottomSheetPlayer(
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
-                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) {
+                                        .clickable {
                                             val intent =
                                                 Intent().apply {
                                                     action = Intent.ACTION_SEND
@@ -1325,7 +1329,7 @@ fun BottomSheetPlayer(
                                         .size(40.dp)
                                         .clip(RoundedCornerShape(24.dp))
                                         .background(textButtonColor)
-                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) {
+                                        .clickable {
                                             menuState.show {
                                                 com.metrolist.music.ui.menu.LyricsMenu(
                                                     lyricsProvider = { currentLyrics },
@@ -1393,7 +1397,9 @@ fun BottomSheetPlayer(
                         },
                         enabled = !isListenTogetherGuest,
                         colors = PlayerSliderColors.getSliderColors(textButtonColor, playerBackground, useDarkTheme),
-                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
+                        modifier = Modifier
+                            .padding(horizontal = PlayerHorizontalPadding)
+                            .semantics { contentDescription = context.getString(R.string.seek_bar) },
                     )
                 }
 
@@ -1758,7 +1764,27 @@ fun BottomSheetPlayer(
                                         .size(72.dp)
                                         .clip(RoundedCornerShape(playPauseRoundness))
                                         .background(textButtonColor)
-                                        .clickable(role = androidx.compose.ui.semantics.Role.Button) {
+                                        .semantics {
+                                            val mainPlayPauseDesc = when {
+                                                isListenTogetherGuest -> if (isMuted) R.string.unmute else R.string.mute
+                                                playbackState == STATE_ENDED -> R.string.play
+                                                effectiveIsPlaying -> R.string.pause
+                                                else -> R.string.play
+                                            }
+                                            role = Role.Button
+                                            contentDescription = mainPlayPauseDesc.let { context.getString(it) }
+                                        }
+                                        .clickable(
+                                            role = Role.Button,
+                                            onClickLabel = stringResource(
+                                                when {
+                                                    isListenTogetherGuest -> if (isMuted) R.string.unmute else R.string.mute
+                                                    playbackState == STATE_ENDED -> R.string.play
+                                                    effectiveIsPlaying -> R.string.pause
+                                                    else -> R.string.play
+                                                }
+                                            )
+                                        ) {
                                             if (isListenTogetherGuest) {
                                                 playerConnection.toggleMute()
                                                 return@clickable
@@ -1793,7 +1819,7 @@ fun BottomSheetPlayer(
                                                 R.drawable.play
                                             },
                                         ),
-                                    contentDescription = stringResource(if (effectiveIsPlaying) R.string.pause else R.string.play),
+                                    contentDescription = null,
                                     colorFilter = ColorFilter.tint(iconButtonColor),
                                     modifier =
                                         Modifier
@@ -2155,7 +2181,7 @@ private fun PlayerMoreMenuButton(
                 .size(40.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(textButtonColor)
-                .clickable(role = androidx.compose.ui.semantics.Role.Button) {
+                .clickable {
                     menuState.show {
                         PlayerMenu(
                             mediaMetadata = mediaMetadata,

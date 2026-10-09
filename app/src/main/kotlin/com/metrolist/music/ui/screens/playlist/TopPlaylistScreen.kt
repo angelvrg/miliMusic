@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.playback.getOverallDownloadState
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -114,7 +116,6 @@ fun TopPlaylistScreen(
     val maxSize = viewModel.top
 
     val songs by viewModel.topSongs.collectAsStateWithLifecycle(null)
-    val mutableSongs = remember { mutableStateListOf<Song>() }
 
     val likeLength = remember(songs) {
         songs?.fastSumBy { it.song.duration } ?: 0
@@ -180,25 +181,14 @@ fun TopPlaylistScreen(
     var downloadState by remember { mutableIntStateOf(Download.STATE_STOPPED) }
 
     LaunchedEffect(songs) {
-        mutableSongs.apply {
-            clear()
-            songs?.let { addAll(it) }
+        val currentSongs = songs
+        if (currentSongs.isNullOrEmpty()) {
+            downloadState = Download.STATE_STOPPED
+            return@LaunchedEffect
         }
-        if (songs?.isEmpty() == true) return@LaunchedEffect
+        val songIds = currentSongs.map { it.song.id }
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs?.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED } == true) {
-                    Download.STATE_COMPLETED
-                } else if (songs?.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.song.id]?.state == Download.STATE_COMPLETED
-                    } == true
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            downloadState = getOverallDownloadState(songIds, downloads)
         }
     }
 

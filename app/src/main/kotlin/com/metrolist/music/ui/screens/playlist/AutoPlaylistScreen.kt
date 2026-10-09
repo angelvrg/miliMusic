@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.playback.getOverallDownloadState
+
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -152,10 +154,6 @@ fun AutoPlaylistScreen(
         }
 
     val songs by viewModel.likedSongs.collectAsStateWithLifecycle(null)
-    val mutableSongs =
-        remember {
-            mutableStateListOf<Song>()
-        }
 
     var isSearching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf(TextFieldValue()) }
@@ -328,43 +326,27 @@ fun AutoPlaylistScreen(
         }
 
     LaunchedEffect(Unit) {
-        println("[UPLOAD_DEBUG] AutoPlaylistScreen LaunchedEffect: playlistId=$playlistId, playlistType=$playlistType, ytmSync=$ytmSync")
         if (ytmSync) {
             withContext(Dispatchers.IO) {
                 if (playlistType == PlaylistType.LIKE) {
-                    println("[UPLOAD_DEBUG] AutoPlaylistScreen: Calling syncLikedSongs()")
                     viewModel.syncLikedSongs()
                 }
                 if (playlistType == PlaylistType.UPLOADED) {
-                    println("[UPLOAD_DEBUG] AutoPlaylistScreen: Calling syncUploadedSongs()")
                     viewModel.syncUploadedSongs()
                 }
             }
-        } else {
-            println("[UPLOAD_DEBUG] AutoPlaylistScreen: ytmSync is false, not syncing")
         }
     }
 
     LaunchedEffect(songs) {
-        mutableSongs.apply {
-            clear()
-            songs?.let { addAll(it) }
+        val currentSongs = songs
+        if (currentSongs.isNullOrEmpty()) {
+            downloadState = Download.STATE_STOPPED
+            return@LaunchedEffect
         }
-        if (songs?.isEmpty() == true) return@LaunchedEffect
+        val songIds = currentSongs.map { it.song.id }
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs?.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED } == true) {
-                    Download.STATE_COMPLETED
-                } else if (songs?.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
-                    } == true
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            downloadState = getOverallDownloadState(songIds, downloads)
         }
     }
 

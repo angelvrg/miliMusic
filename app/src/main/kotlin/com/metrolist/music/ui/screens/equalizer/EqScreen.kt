@@ -5,6 +5,8 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -262,7 +264,7 @@ private fun EqScreenContent(
             val customProfiles = profiles.filter { it.isCustom }
 
             if (customProfiles.isNotEmpty()) {
-                items(customProfiles) { profile ->
+                items(customProfiles, key = { it.id }) { profile ->
                     EQProfileItem(
                         profile = profile,
                         isSelected = activeProfileId == profile.id,
@@ -325,11 +327,15 @@ private fun NoEqualizationItem(
         leadingContent = {
             RadioButton(
                 selected = isSelected,
-                onClick = onSelected
+                onClick = null
             )
         },
         modifier = Modifier
-            .clickable(onClick = onSelected)
+            .selectable(
+                selected = isSelected,
+                onClick = onSelected,
+                role = Role.RadioButton
+            )
             .padding(horizontal = 8.dp) // align with design
     )
 }
@@ -362,7 +368,7 @@ private fun EQProfileItem(
         leadingContent = {
             RadioButton(
                 selected = isSelected,
-                onClick = onSelected
+                onClick = null
             )
         },
         trailingContent = {
@@ -375,7 +381,11 @@ private fun EQProfileItem(
             }
         },
         modifier = Modifier
-            .clickable(onClick = onSelected)
+            .selectable(
+                selected = isSelected,
+                onClick = onSelected,
+                role = Role.RadioButton
+            )
             .padding(horizontal = 8.dp)
     )
 

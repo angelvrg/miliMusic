@@ -34,6 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -513,6 +515,11 @@ private fun WordLevelLyrics(
         Canvas(modifier = Modifier
             .fillMaxWidth()
             .height(with(density) { layoutResult.size.height.toDp() })
+            .semantics {
+                if (!mainText.isNullOrEmpty()) {
+                    contentDescription = mainText
+                }
+            }
             .graphicsLayer(
                 clip = false,
                 compositingStrategy = CompositingStrategy.Offscreen,

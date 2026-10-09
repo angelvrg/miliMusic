@@ -2090,7 +2090,7 @@ object YouTube {
                 }
             }
         } catch (e: Exception) {
-            println("Error converting chart item: ${e.message}\n${Json.encodeToString(renderer)}")
+            Timber.e(e, "Error converting chart item: %s", e.message)
             null
         }
     }
@@ -2161,7 +2161,7 @@ object YouTube {
                 }
             }
         } catch (e: Exception) {
-            println("Error converting two row item: ${e.message}\n${Json.encodeToString(renderer)}")
+            Timber.e(e, "Error converting two row item: %s", e.message)
             null
         }
     }

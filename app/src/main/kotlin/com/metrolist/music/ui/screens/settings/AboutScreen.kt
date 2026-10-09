@@ -194,19 +194,19 @@ private fun DeveloperSocials(
             onClick = { uriHandler.openUri("https://metrolist.cc") },
             modifier = Modifier.weight(1f).height(48.dp)
         ) {
-            Icon(painterResource(R.drawable.language), contentDescription = null)
+            Icon(painterResource(R.drawable.language), contentDescription = "Website")
         }
         FilledTonalButton(
             onClick = { uriHandler.openUri("https://github.com/mostafaalagamy") },
             modifier = Modifier.weight(1f).height(48.dp)
         ) {
-            Icon(painterResource(R.drawable.github), contentDescription = null)
+            Icon(painterResource(R.drawable.github), contentDescription = "GitHub")
         }
         FilledTonalButton(
             onClick = { uriHandler.openUri("https://www.instagram.com/mostafaalagamy") },
             modifier = Modifier.weight(1f).height(48.dp)
         ) {
-            Icon(painterResource(R.drawable.instagram), contentDescription = null)
+            Icon(painterResource(R.drawable.instagram), contentDescription = "Instagram")
         }
     }
 }

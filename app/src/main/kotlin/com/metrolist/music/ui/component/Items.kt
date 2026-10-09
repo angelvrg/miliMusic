@@ -56,6 +56,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -259,10 +262,19 @@ inline fun ListItem(
     isActive: Boolean = false,
     isAvailable: Boolean = true,
 ) {
+    val nowPlayingDesc = stringResource(R.string.now_playing)
+    val accessibleModifier = modifier.semantics(mergeDescendants = true) {
+        if (isActive) {
+            stateDescription = nowPlayingDesc
+        }
+        if (isSelected != null) {
+            selected = isSelected
+        }
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = if (isActive) {
-            modifier // playing highlight
+            accessibleModifier // playing highlight
                 .height(ListItemHeight)
                 .padding(horizontal = 8.dp)
                 .clip(RoundedCornerShape(8.dp))
@@ -272,13 +284,13 @@ inline fun ListItem(
                         else MaterialTheme.colorScheme.secondaryContainer
                 )
         } else if (isSelected == true) {
-            modifier // inactive selected
+            accessibleModifier // inactive selected
                 .height(ListItemHeight)
                 .padding(horizontal = 8.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(color = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.4f))
         } else {
-            modifier // default
+            accessibleModifier // default
                 .height(ListItemHeight)
                 .padding(horizontal = 8.dp)
         }

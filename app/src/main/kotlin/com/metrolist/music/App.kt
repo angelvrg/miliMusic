@@ -88,7 +88,9 @@ class App :
         }
 
         // Plant logging before extraction services initialize.
-        Timber.plant(Timber.DebugTree())
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        }
         InnerTubeXPlayer.initialize(this)
 
         // Pre-read Coil cache size on background to avoid runBlocking in newImageLoader
@@ -296,9 +298,9 @@ class App :
     private var cachedCoilCacheSize: Int? = null
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
-        val cacheSize = cachedCoilCacheSize ?: runBlocking {
+        val cacheSize = cachedCoilCacheSize ?: runBlocking(Dispatchers.IO) {
             dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
-        }
+        }.also { cachedCoilCacheSize = it }
         return ImageLoader
             .Builder(this)
             .apply {

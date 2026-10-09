@@ -5,6 +5,8 @@
 
 package com.metrolist.music.ui.screens.playlist
 
+import com.metrolist.music.playback.getOverallDownloadState
+
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
@@ -266,20 +268,9 @@ fun LocalPlaylistScreen(
             addAll(songs)
         }
         if (songs.isEmpty()) return@LaunchedEffect
+        val songIds = songs.map { it.song.id }
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
-                } else if (songs.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
-                    }
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            downloadState = getOverallDownloadState(songIds, downloads)
         }
     }
 
@@ -995,20 +986,9 @@ fun LocalPlaylistHeader(
 
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
+        val songIds = songs.map { it.song.id }
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
-                } else if (songs.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                            downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                            downloads[it.song.id]?.state == Download.STATE_COMPLETED
-                    }
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            downloadState = getOverallDownloadState(songIds, downloads)
         }
     }
 

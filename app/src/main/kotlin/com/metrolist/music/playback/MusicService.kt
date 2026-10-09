@@ -16,6 +16,8 @@ import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.withTimeoutOrNull
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.database.SQLException
@@ -736,7 +738,12 @@ class MusicService :
                 addAction(Intent.ACTION_SCREEN_ON)
                 addAction(Intent.ACTION_SCREEN_OFF)
             }
-        registerReceiver(screenStateReceiver, screenStateFilter)
+        ContextCompat.registerReceiver(
+            this,
+            screenStateReceiver,
+            screenStateFilter,
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
 
@@ -4249,7 +4256,9 @@ class MusicService :
         val currentMetadata = player.currentMediaItem?.metadata
         if (currentMetadata?.isEpisode == true && player.currentPosition > 0) {
             runBlocking(Dispatchers.IO) {
-                database.updatePlaybackPosition(currentMetadata.id, player.currentPosition)
+                withTimeoutOrNull(1500) {
+                    database.updatePlaybackPosition(currentMetadata.id, player.currentPosition)
+                }
             }
         }
 

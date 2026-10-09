@@ -195,7 +195,7 @@ fun PlayerMenu(
         ListDialog(
             onDismiss = { showSelectArtistDialog = false },
         ) {
-            items(artists) { artist ->
+            items(artists, key = { it.id }) { artist ->
                 Box(
                     contentAlignment = Alignment.CenterStart,
                     modifier =
@@ -1641,7 +1641,7 @@ fun ListenTogetherDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    items(pendingJoinRequests) { request ->
+                    items(pendingJoinRequests, key = { it.userId }) { request ->
                         Surface(
                             modifier =
                                 Modifier
@@ -1728,7 +1728,7 @@ fun ListenTogetherDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                     }
 
-                    items(pendingSuggestions) { suggestion ->
+                    items(pendingSuggestions, key = { it.suggestionId }) { suggestion ->
                         Surface(
                             modifier =
                                 Modifier

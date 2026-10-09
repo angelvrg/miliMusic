@@ -444,3 +444,24 @@ internal fun downloadContentLength(
 
 private val PARTIAL_CONTENT_RANGE = Regex("""bytes\s+0-0/(\d+)""", RegexOption.IGNORE_CASE)
 private val UNSATISFIED_CONTENT_RANGE = Regex("""bytes\s+\*/(\d+)""", RegexOption.IGNORE_CASE)
+
+fun getOverallDownloadState(songIds: List<String>, downloads: Map<String, Download>): Int {
+    if (songIds.isEmpty()) return Download.STATE_STOPPED
+    var allCompleted = true
+    var allQueuedOrDownloadingOrCompleted = true
+    for (id in songIds) {
+        val state = downloads[id]?.state
+        if (state != Download.STATE_COMPLETED) {
+            allCompleted = false
+        }
+        if (state != Download.STATE_QUEUED && state != Download.STATE_DOWNLOADING && state != Download.STATE_COMPLETED) {
+            allQueuedOrDownloadingOrCompleted = false
+            if (!allCompleted) break
+        }
+    }
+    return when {
+        allCompleted -> Download.STATE_COMPLETED
+        allQueuedOrDownloadingOrCompleted -> Download.STATE_DOWNLOADING
+        else -> Download.STATE_STOPPED
+    }
+}

@@ -58,6 +58,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -385,6 +389,8 @@ private fun NewMiniPlayer(
                     .clickable(
                         interactionSource = interactionSource,
                         indication = LocalIndication.current,
+                        role = Role.Button,
+                        onClickLabel = stringResource(R.string.open_player),
                         onClick = onClick
                     ),
         ) {
@@ -553,6 +559,16 @@ private fun NewMiniPlayerPlayButton(
                     )
                 },
     ) {
+        val playPauseDesc = if (isListenTogetherGuest) {
+            if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
+        } else if (playbackState == Player.STATE_ENDED) {
+            stringResource(R.string.play)
+        } else if (effectiveIsPlaying) {
+            stringResource(R.string.pause)
+        } else {
+            stringResource(R.string.play)
+        }
+
         // Thumbnail with play/pause overlay
         Box(
             contentAlignment = Alignment.Center,
@@ -561,7 +577,14 @@ private fun NewMiniPlayerPlayButton(
                     .size(40.dp)
                     .clip(CircleShape)
                     .border(1.dp, outlineColor.copy(alpha = 0.3f), CircleShape)
-                    .clickable {
+                    .semantics {
+                        role = Role.Button
+                        contentDescription = playPauseDesc
+                    }
+                    .clickable(
+                        role = Role.Button,
+                        onClickLabel = playPauseDesc,
+                    ) {
                         if (isListenTogetherGuest) {
                             playerConnection.toggleMute()
                             return@clickable
@@ -632,7 +655,7 @@ private fun NewMiniPlayerSongInfo(
     val error by LocalPlayerConnection.current?.error?.collectAsState() ?: remember { mutableStateOf(null) }
 
     Column(
-        modifier = modifier,
+        modifier = modifier.semantics(mergeDescendants = true) {},
         verticalArrangement = Arrangement.Center,
     ) {
         mediaMetadata?.let { metadata ->
@@ -1048,6 +1071,7 @@ private fun SubscribeButton(
     val isSubscribed = libraryArtist?.artist?.bookmarkedAt != null
 
 
+    val subscribeDesc = if (isSubscribed) stringResource(R.string.subscribed) else stringResource(R.string.subscribe)
     Box(
         contentAlignment = Alignment.Center,
         modifier =
@@ -1061,7 +1085,13 @@ private fun SubscribeButton(
                 ).background(
                     color = if (isSubscribed) primaryColor.copy(alpha = 0.1f) else Color.Transparent,
                     shape = CircleShape,
-                ).clickable {
+                ).semantics {
+                    role = Role.Button
+                    contentDescription = subscribeDesc
+                }.clickable(
+                    role = Role.Button,
+                    onClickLabel = subscribeDesc,
+                ) {
                     database.transaction {
                         val artist = libraryArtist?.artist
                         if (artist != null) {
@@ -1104,6 +1134,7 @@ private fun FavoriteButton(
     val isEpisode = librarySong?.song?.isEpisode == true
     val isLiked = if (isEpisode) librarySong?.song?.inLibrary != null else librarySong?.song?.liked == true
 
+    val favDesc = if (isLiked) stringResource(R.string.liked) else stringResource(R.string.like)
     Box(
         contentAlignment = Alignment.Center,
         modifier =
@@ -1117,7 +1148,13 @@ private fun FavoriteButton(
                 ).background(
                     color = if (isLiked) errorColor.copy(alpha = 0.1f) else Color.Transparent,
                     shape = CircleShape,
-                ).clickable { playerConnection.service.toggleLike() },
+                ).semantics {
+                    role = Role.Button
+                    contentDescription = favDesc
+                }.clickable(
+                    role = Role.Button,
+                    onClickLabel = favDesc,
+                ) { playerConnection.service.toggleLike() },
     ) {
         Icon(
             painter = painterResource(if (isLiked) R.drawable.favorite else R.drawable.favorite_border),
